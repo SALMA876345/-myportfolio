@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Incident Maps</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.22.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.20.2"></script>
+    <style>
+       body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.chart {
+    margin-bottom: 40px;
+    width: 90%;
+    max-width: 1000px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.description {
+    margin-top: -15px;
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Optional: Responsive styling for smaller screens */
+@media (max-width: 600px) {
+    .chart {
+        width: 100%;
+        padding: 15px;
+    }
+    .description {
+        font-size: 0.85em;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+    <h1>Traffic Incident Visualizations</h1>
+
+    <div class="chart" id="chart1"></div>
+    <p class="description">This graph displays the frequency of traffic incidents over time, with each bar representing incidents on a specific date and time. The chart helps identify trends in incident occurrence. It’s useful for understanding peak accident times.</p>
+    <script>
+        var spec1 = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": 800,
+            "height": 400,
+            "data": {
+                "url": "https://raw.githubusercontent.com/sheriefAbdallah/CS318/refs/heads/main/Traffic_Incidents.csv",
+                "format": {
+                    "type": "csv",
+                    "parse": {
+                        "acci_time": "utc:'%d/%m/%Y %H:%M:%S'"
+                    }
+                }
+            },
+            "mark": "bar",
+            "encoding": {
+                "x": {
+                    "field": "acci_time",
+                    "type": "temporal",
+                    "title": "Date and Time of Incident",
+                    "axis": {"format": "%d/%m/%Y %H:%M", "labelAngle": -45}
+                },
+                "y": {
+                    "aggregate": "count",
+                    "type": "quantitative",
+                    "title": "Number of Incidents"
+                },
+                "tooltip": [
+                    {"field": "acci_time", "type": "temporal", "title": "Date and Time"},
+                    {"aggregate": "count", "type": "quantitative", "title": "Incidents"}
+                ]
+            },
+            "title": "Traffic Incidents by Date and Time",
+        };
+        vegaEmbed('#chart1', spec1);
+    </script>
+
+    <div class="chart" id="chart2"></div>
+    <p class="description">This bar chart shows the distribution of traffic incidents by day of the week. It highlights which days are more prone to accidents, useful for resource planning. Peak days can inform targeted safety measures.</p>
+    <script>
+        var spec2 = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": 800,
+            "height": 400,
+            "data": {
+                "url": "https://raw.githubusercontent.com/sheriefAbdallah/CS318/refs/heads/main/Traffic_Incidents.csv",
+                "format": {
+                    "type": "csv",
+                    "parse": {
+                        "acci_time": "date:'%d/%m/%Y %H:%M:%S'"
+                    }
+                }
+            },
+            "transform": [
+                {
+                    "calculate": "day(datum.acci_time)",
+                    "as": "day_of_week_num"
+                },
+                {
+                    "calculate": "datum.day_of_week_num == 0 ? 'Sunday' : datum.day_of_week_num == 1 ? 'Monday' : datum.day_of_week_num == 2 ? 'Tuesday' : datum.day_of_week_num == 3 ? 'Wednesday' : datum.day_of_week_num == 4 ? 'Thursday' : datum.day_of_week_num == 5 ? 'Friday' : 'Saturday'",
+                    "as": "day_of_week"
+                }
+            ],
+            "mark": "bar",
+            "encoding": {
+                "x": {
+                    "field": "day_of_week",
+                    "type": "ordinal",
+                    "title": "Day of the Week",
+                    "sort": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                },
+                "y": {
+                    "aggregate": "count",
+                    "type": "quantitative",
+                    "title": "Number of Accidents"
+                },
+                "color": {
+                    "field": "day_of_week",
+                    "type": "nominal",
+                    "legend": {"title": "Day of the Week"},
+                    "scale": {
+                        "domain": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                        "range": ["#3498db", "#e74c3c", "#f1c40f", "#2ecc71", "#9b59b6", "#ffb6c1", "#d8cab8"]
+                    }
+                },
+                "tooltip": [
+                    {"field": "day_of_week", "type": "ordinal", "title": "Day"},
+                    {"aggregate": "count", "type": "quantitative", "title": "Incidents"}
+                ]
+            },
+            "title": "Accident Distribution by Day of the Week",
+        };
+        vegaEmbed('#chart2', spec2);
+    </script>
+
+    <div class="chart" id="chart3"></div>
+    <p class="description">This line chart visualizes the timing of traffic incidents across hours of the day, segmented by weekdays. The chart reveals peak times, which can guide enforcement scheduling. Trends may differ by day of the week.</p>
+    <script>
+        var spec3 = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": 800,
+            "height": 400,
+            "data": {
+                "url": "https://raw.githubusercontent.com/sheriefAbdallah/CS318/refs/heads/main/Traffic_Incidents.csv",
+                "format": {
+                    "type": "csv",
+                    "parse": {
+                        "acci_time": "date:'%d/%m/%Y %H:%M:%S'"
+                    }
+                }
+            },
+            "transform": [
+                {
+                    "calculate": "timeFormat(datum.acci_time, '%H')",
+                    "as": "hour"
+                },
+                {
+                    "calculate": "day(datum.acci_time)",
+                    "as": "day_of_week_num"
+                },
+                {
+                    "calculate": "datum.day_of_week_num == 0 ? 'Sunday' : datum.day_of_week_num == 1 ? 'Monday' : datum.day_of_week_num == 2 ? 'Tuesday' : datum.day_of_week_num == 3 ? 'Wednesday' : datum.day_of_week_num == 4 ? 'Thursday' : datum.day_of_week_num == 5 ? 'Friday' : 'Saturday'",
+                    "as": "day_of_week"
+                }
+            ],
+            "mark": "line",
+            "encoding": {
+                "x": {
+                    "field": "hour",
+                    "type": "ordinal",
+                    "title": "Hour of the Day",
+                },
+                "y": {
+                    "aggregate": "count",
+                    "type": "quantitative",
+                    "title": "Number of Accidents"
+                },
+                "color": {
+                    "field": "day_of_week",
+                    "type": "nominal",
+                    "legend": {"title": "Day of the Week"}
+                },
+                "tooltip": [
+                    {"field": "day_of_week", "type": "ordinal", "title": "Day"},
+                    {"field": "hour", "type": "ordinal", "title": "Hour"},
+                    {"aggregate": "count", "type": "quantitative", "title": "Accidents"}
+                ]
+            },
+            "title": "Accident Distribution by Hour of the Day",
+        };
+        vegaEmbed('#chart3', spec3);
+    </script>
+
+    <div class="chart" id="chart4"></div>
+    <p class="description">This map highlights the density of traffic incidents in Dubai, with larger, darker circles representing areas with higher accident rates. This information is valuable for identifying dangerous hotspots. Such insights can guide traffic management improvements.</p>
+    <script>
+        var spec4 = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": 800,
+            "height": 500,
+            "data": {
+                "url": "https://raw.githubusercontent.com/sheriefAbdallah/CS318/refs/heads/main/Traffic_Incidents.csv",
+                "format": {
+                    "type": "csv",
+                    "parse": {
+                        "acci_time": "date:'%d/%m/%Y %H:%M:%S'"
+                    }
+                }
+            },
+            "transform": [
+                {
+                    "filter": "datum.acci_y > 23"
+                },
+                {
+                    "aggregate": [
+                        {
+                            "op": "count",
+                            "as": "accident_count"
+                        }
+                    ],
+                    "groupby": [
+                        "acci_x",
+                        "acci_y"
+                    ]
+                }
+            ],
+            "mark": {
+                "type": "circle",
+                "tooltip": {"content": "data"}
+            },
+            "encoding": {
+                "longitude": {"field": "acci_x", "type": "quantitative"},
+                "latitude": {"field": "acci_y", "type": "quantitative"},
+                "size": {
+                    "field": "accident_count",
+                    "type": "quantitative",
+                    "scale": {"domain": [1, 100], "range": [10, 1000]},
+                    "title": "Accident Count"
+                },
+                "color": {
+                    "field": "accident_count",
+                    "type": "quantitative",
+                    "title": "Accident Density",
+                    "scale": {"scheme": "reds"}
+                },
+                "tooltip": [
+                    {"field": "acci_x", "type": "quantitative", "title": "Longitude"},
+                    {"field": "acci_y", "type": "quantitative", "title": "Latitude"},
+                    {"field": "accident_count", "type": "quantitative", "title": "Incidents"}
+                ]
+            },
+            "title": "Dubai Traffic Incidents Density Map",
+            "projection": {"type": "mercator"}
+        };
+        vegaEmbed('#chart4', spec4);
+    </script>
+
+</body>
+</html>
+
+
+
